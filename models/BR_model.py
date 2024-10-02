@@ -84,9 +84,8 @@ class SimpleBRModel:
 
 
 if __name__ == '__main__':
-    br_model = SimpleBRModel(alpha=1, beta=0.52, initial_infectious=100, rho=5e6, 
+    br_model = SimpleBRModel(alpha=1, beta=0.7, initial_infectious=100, rho=5e5, 
                              br_func_array=[0.1, 0.1, 1, 0.9, 0.55, 0.3, 0.15, 0.05])
-    br_model.simulate()
+    br_model.simulate(modeling_duration=80)
     br_model.plot_output()
     br_model.save_result()
-    

@@ -22,7 +22,7 @@ class EpidData:
         # epid_df['date'] = datelist
         # epid_df.to_excel('epid_data_spb.xlsx')
 
-    def read_epid_data(self, filename='epid_data_spb.xlsx'):
+    def read_epid_data(self, filename='epid_data/epid_data_spb.xlsx'):
         self.epid_df = pd.read_excel(filename)
         self.epid_df.fillna(value=0)
 
@@ -42,9 +42,14 @@ class EpidData:
         fig, ax = plt.subplots(figsize=(10,5))
         for wave in self.waves:
             ax.plot(wave, '--o', color='royalblue', alpha=0.6)
-            break
         ax.grid()
         fig.savefig('waves.png', bbox_inches='tight')
+
+    def save_epid_data(self):
+        for index, wave in enumerate(self.waves):
+            epid_data = pd.DataFrame(columns=['incidence'])
+            epid_data['incidence'] = wave
+            epid_data.to_csv(f'epid_data/epid_influenza_season_{index}.csv')
 
 
 if __name__ == '__main__':
@@ -52,4 +57,5 @@ if __name__ == '__main__':
     epid_data.read_epid_data()
     # epid_data.plot_epid_data()
     epid_data.get_waves()
+    epid_data.save_epid_data()
     epid_data.plot_waves()
