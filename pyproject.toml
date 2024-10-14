@@ -6,7 +6,10 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.13"
+openpyxl = "^3.1.5"
+numpy = ">=1.17.0,<2"
+pymc = "^5.17.0"
 
 
 [build-system]
