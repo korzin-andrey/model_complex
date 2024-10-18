@@ -13,7 +13,7 @@ class Calibration:
     def __init__(        
         self,
         incidence: int,
-        initial_infectious: int,
+        initial_infectious: list[int],
         ) -> None:
         """
         Calibration class
@@ -61,8 +61,8 @@ class Calibration:
             return BRModel.get_newly_infected()
         
         with pm.Model() as model:
-            alpha = pm.Uniform(name="alpha", lower=0, upper=1)
-            beta = pm.Uniform(name="beta", lower=0, upper=1)
+            alpha = pm.Uniform(name="alpha", lower=0, upper=1, shape=(1,2))
+            beta = pm.Uniform(name="beta", lower=0, upper=1, shape=(2,2))
             sim = pm.Simulator("sim", simulation_func, params=(alpha, beta), 
                             epsilon=10, observed=data)
             idata = pm.sample_smc()

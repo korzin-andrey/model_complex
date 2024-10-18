@@ -29,7 +29,10 @@ class AgeGroupBRModel(BRModel):
         :return:
         """
 
-        assert len(alpha) == 2 & len(beta) == 2 & len(beta[0]) == 2 & len(initial_infectious) == 2
+        assert len(alpha[0]) == 2 
+        assert len(beta) == 2 
+        assert len(beta[0]) == 2 
+        assert len(initial_infectious) == 2
 
         self.newly_infected_all = []
 
@@ -40,11 +43,10 @@ class AgeGroupBRModel(BRModel):
             newly_infected = np.zeros(modeling_duration)
             susceptible = np.zeros(modeling_duration)
 
-            initial_infectious = initial_infectious[j]
-            total_infected[0] = initial_infectious 
-            newly_infected[0] = initial_infectious
+            total_infected[0] = initial_infectious[j] 
+            newly_infected[0] = initial_infectious[j]
 
-            initial_susceptible = int(alpha[j]*rho)
+            initial_susceptible = int(alpha[0][j]*rho)
             susceptible[0] = initial_susceptible
 
             # SIMULATION
