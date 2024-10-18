@@ -1,7 +1,7 @@
 from .Models import TotalBRModel
-# from .Models import StrainBRModel
+from .Models import StrainBRModel
 # from .Models import StrainAgeGroupBRModel
-# from .Models import AgeGroupBRModel
+from .Models import AgeGroupBRModel
 from .Interface import BRModel
 
 class FactoryBRModel:
@@ -9,11 +9,14 @@ class FactoryBRModel:
         if incidence == 'total':
             return TotalBRModel()
 
-        if incidence == 'strain':
+        elif incidence == 'strain':
+            return StrainBRModel()
+
+        elif incidence == 'age-group':
+            return AgeGroupBRModel()
+
+        elif incidence == 'strain_age-group':
             ...
 
-        if incidence == 'age-group':
-            ...
-
-        if incidence == 'strain_age-group':
-            ...
+        else:
+            raise Exception(f"model \"{incidence}\" does not exist")

@@ -14,7 +14,6 @@ class Calibration:
         self,
         incidence: int,
         initial_infectious: int,
-        people_nums: int,
         ) -> None:
         """
         Calibration class
@@ -28,7 +27,14 @@ class Calibration:
 
         self.BRModel = FactoryBRModel.get_model(incidence)
         self.initial_infectious = initial_infectious
-        self.people_nums = people_nums
+
+    def plot(self, city, path, start, end):
+        epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
+        BRModel = self.BRModel
+        data = BRModel.data_columns(epid_data)
+
+        fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+        ax.plot(list(data), "o")
 
 
     def calibrate(self, city, path, start, end): # -> 
@@ -44,12 +50,14 @@ class Calibration:
         """
 
         epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
+
         BRModel = self.BRModel
         data = BRModel.data_columns(epid_data)
 
+        # TODO: выташить число людей
 
         def simulation_func(rng, alpha, beta, size=None):
-            BRModel.simulate(alpha=alpha, beta=beta, initial_infectious=100, rho=5e5, modeling_duration=len(data))
+            BRModel.simulate(alpha=alpha, beta=beta, initial_infectious=self.initial_infectious, rho=5e5, modeling_duration=len(data))
             return BRModel.get_newly_infected()
         
         with pm.Model() as model:
