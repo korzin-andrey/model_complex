@@ -25,16 +25,8 @@ class Calibration:
         :param people_nums: Name of city  
         """
 
-        self.BRModel = FactoryBRModel.get_model(incidence)
+        self.Model = FactoryBRModel.get_model(incidence)
         self.initial_infectious = initial_infectious
-
-    def plot(self, city, path, start, end):
-        epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
-        BRModel = self.BRModel
-        data = BRModel.data_columns(epid_data)
-
-        fig, ax = plt.subplots(1, 1, figsize=(6, 4))
-        ax.plot(list(data), "o")
 
 
     def calibrate(self, city, path, start, end): # -> 
@@ -51,20 +43,12 @@ class Calibration:
 
         epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
 
-        BRModel = self.BRModel
-        data = BRModel.data_columns(epid_data)
+        Model = self.Model
+        data = Model.data_columns(epid_data)
 
         # TODO: выташить число людей
 
-        def simulation_func(rng, alpha, beta, size=None):
-            BRModel.simulate(alpha=alpha, beta=beta, initial_infectious=self.initial_infectious, rho=5e5, modeling_duration=len(data))
-            return BRModel.get_newly_infected()
-        
-        with pm.Model() as model:
-            alpha = pm.Uniform(name="alpha", lower=0, upper=1, )
-            beta = pm.Uniform(name="beta", lower=0, upper=1, )
-            sim = pm.Simulator("sim", simulation_func, params=(alpha, beta), 
-                            epsilon=10, observed=data)
-            idata = pm.sample_smc()
 
-        return idata, simulation_func, data
+        idata = Model.context_manager(self.initial_infectious, data)
+
+        return idata, data
