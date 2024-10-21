@@ -2,7 +2,7 @@
 name = "model-complex"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = ["Korzin A.I., Kaparulin T.I., Leonenko V.N."]
 readme = "README.md"
 
 [tool.poetry.dependencies]
