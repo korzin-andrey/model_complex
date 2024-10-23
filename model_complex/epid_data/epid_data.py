@@ -2,7 +2,6 @@ import pandas as pd
 import datetime
 
 
-
 class EpidData:
     def __new__(
         self, 
@@ -42,11 +41,11 @@ class EpidData:
         """
         Download excel file from epid_data folder
 
-        :return:
+        :return: 
         """
 
         self.epid_df = pd.read_excel(
-            self.path.rstrip('/') + f'/epid_data/{self.city}/epid_data.xlsx'
+            self.path.rstrip('/') + f'/data/{self.city}/epid_data.xlsx'
         )
         self.epid_df = self.epid_df.apply(lambda x: x.fillna(0), axis=0)
 

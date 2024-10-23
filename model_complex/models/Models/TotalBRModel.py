@@ -56,3 +56,9 @@ class TotalBRModel(BRModel):
 
     def data_columns(self, epid_data):
         return epid_data['total']
+    
+
+
+if __name__ == '__main__':
+    model = TotalBRModel()
+    print(model.is_calibrated)

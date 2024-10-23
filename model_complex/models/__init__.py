@@ -1,1 +1,1 @@
-from .FactoryBRModel import FactoryBRModel
+from .FactoryModel import FactoryModel

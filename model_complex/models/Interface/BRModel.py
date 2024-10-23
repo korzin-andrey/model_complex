@@ -2,7 +2,9 @@ class BRModel:
     """
     Interface for all BRModels
     """
-
+    def __init__(self):
+        self.is_calibrated: bool = False
+    
     br_func_array = [0.1, 0.1, 1, 0.9, 0.55, 0.3, 0.15, 0.05]
 
     def simulate(self):

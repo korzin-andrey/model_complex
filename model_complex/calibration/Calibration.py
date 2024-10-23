@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 import pymc as pm
 from dateutil import parser
 
-from .epid_data import EpidData
-from ..models import FactoryBRModel
+from ...epid_data import EpidData
+from ..models import FactoryModel
 
 class Calibration:
 
     def __init__(        
         self,
-        incidence: int,
+        incidence: str,
         initial_infectious: list[int],
         ) -> None:
         """
@@ -25,24 +25,23 @@ class Calibration:
         :param people_nums: Name of city  
         """
 
-        self.BRModel = FactoryBRModel.get_model(incidence)
+        self.model = FactoryModel.get_model(incidence)
         self.initial_infectious = initial_infectious
 
     def plot(self, city, path, start, end):
         epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
-        BRModel = self.BRModel
+        BRModel = self.model
         data = BRModel.data_columns(epid_data)
 
         fig, ax = plt.subplots(1, 1, figsize=(6, 4))
         ax.plot(list(data), "o")
 
 
-    def calibrate(self, city, path, start, end): # -> 
+    def calibrate__abc(self, city, path, start, end): # -> 
         """
-        TODO
-        
-        :param city: Name of city  
-        :param path: path to directory 'epid_data'
+        TODO 
+        :param city: Name of the city  
+        :param path: Path to directory 'epid_data'
         :param start: First day of extracted data
             String of the form "mm-dd-yy"
         :param end: Last day of extracted data
@@ -51,7 +50,7 @@ class Calibration:
 
         epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
 
-        BRModel = self.BRModel
+        BRModel = self.model
         data = BRModel.data_columns(epid_data)
 
         # TODO: выташить число людей
@@ -66,5 +65,9 @@ class Calibration:
             sim = pm.Simulator("sim", simulation_func, params=(alpha, beta), 
                             epsilon=10, observed=data)
             idata = pm.sample_smc()
-
-        return idata, simulation_func, data
+        self.model.is_calibrated = True
+        return idata, simulation_func, data, self.model
+    
+    # TODO: write calibration method using optuna
+    def calibrate_optuna():
+        pass
