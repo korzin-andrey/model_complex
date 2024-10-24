@@ -20,9 +20,9 @@ class TotalBRModel(BRModel):
 
     def simulate(
         self, 
-        alpha: float, 
-        beta: float, 
-        initial_infectious: int,
+        alpha: list[float], 
+        beta: list[float], 
+        initial_infectious: list[int],
         rho: int, 
         modeling_duration: int
     ):
@@ -40,16 +40,16 @@ class TotalBRModel(BRModel):
         """       
         assert len(alpha) == self.alpha_len[0]
         assert len(beta) == self.beta_len[0]
-        assert type(initial_infectious) == int
+        assert len(initial_infectious) == self.alpha_len[0]
 
         # SETTING UP INITIAL CONDITIONS
-        initial_susceptible = int(alpha*rho)
+        initial_susceptible = int(alpha[0]*rho)
         initial_infectious = initial_infectious
         total_infected = np.zeros(modeling_duration)
         newly_infected = np.zeros(modeling_duration)
         susceptible = np.zeros(modeling_duration)
-        total_infected[0] = initial_infectious 
-        newly_infected[0] = initial_infectious
+        total_infected[0] = initial_infectious[0] 
+        newly_infected[0] = initial_infectious[0]
         susceptible[0] = initial_susceptible
 
         # SIMULATION
@@ -58,7 +58,7 @@ class TotalBRModel(BRModel):
                                     for tau in range(len(self.br_func_array)) if (day - tau) >=0]),
                                     rho)
             
-            newly_infected[day+1] = min(beta*susceptible[day]*total_infected[day]/rho,
+            newly_infected[day+1] = min(beta[0]*susceptible[day]*total_infected[day]/rho,
                                              susceptible[day])
             susceptible[day+1] = susceptible[day] - newly_infected[day+1]      
 

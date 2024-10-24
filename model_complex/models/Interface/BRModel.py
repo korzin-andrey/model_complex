@@ -1,11 +1,11 @@
 class BRModel:
+    """
+    Interface for all BRModels
+    """
 
     br_func_array = [0.1, 0.1, 1, 0.9, 0.55, 0.3, 0.15, 0.05]
 
     def __init__(self):
-        """
-        Interface for all BRModels
-        """
         self.alpha_len = (0,)
         self.beta_len = (0,)
 
@@ -14,12 +14,12 @@ class BRModel:
 
 
     def simulate(
-        self,         
-        alpha, 
-        beta, 
-        initial_infectious, 
-        rho, 
-        modeling_duration
+        self, 
+        alpha: list[float], 
+        beta: list[float], 
+        initial_infectious: list[int],
+        rho: int, 
+        modeling_duration: int
     ):
         pass
     

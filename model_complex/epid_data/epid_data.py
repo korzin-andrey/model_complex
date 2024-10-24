@@ -1,5 +1,5 @@
 import pandas as pd
-import datetime
+from dateutil import parser
 
 
 
@@ -8,8 +8,8 @@ class EpidData:
         self, 
         city: str, 
         path: str,
-        start: datetime, 
-        end: datetime,
+        start: str, 
+        end: str,
     ) -> pd.DataFrame:
         """
         EpidData class
@@ -20,10 +20,14 @@ class EpidData:
         :param city: Name of city  
         :param path: path to directory 'epid_data'
         :param start: First day of extracted data
+            String of the form "mm-dd-yy"
         :param end: Last day of extracted data
+            String of the form "mm-dd-yy"
 
         :return: Extracted data in the desired interval
         """
+        start = parser.parse(start)
+        end = parser.parse(end)
 
         self.start = start
         self.city = city
