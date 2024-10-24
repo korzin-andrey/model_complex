@@ -32,7 +32,7 @@ class Calibration:
     def calibrate(self, city, path, start, end): # -> 
         """
         TODO
-        
+
         :param city: Name of city  
         :param path: path to directory 'epid_data'
         :param start: First day of extracted data
@@ -43,12 +43,53 @@ class Calibration:
 
         epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
 
-        Model = self.Model
-        data = Model.data_columns(epid_data)
+
+        data, alpha_len, beta_len = self.Model.params(epid_data)
+
+        def simulation_func(rng, alpha, beta, size=None):
+            self.Model.simulate(
+                alpha=alpha, 
+                beta=beta, 
+                initial_infectious=self.initial_infectious, 
+                rho=5e5, 
+                modeling_duration=int(len(data)/alpha_len[0])
+            )
+            return self.Model.get_newly_infected()
+        
+        with pm.Model() as model:
+            alpha = pm.Uniform(name="a", lower=0, upper=1, shape=alpha_len)
+            beta = pm.Uniform(name="b", lower=0, upper=1, shape=beta_len)
+
+
+            sim = pm.Simulator("sim", simulation_func, alpha, beta,
+                            epsilon=10, observed=data)
+            
+            idata = pm.sample_smc()
+
+        return idata, data, simulation_func
 
         # TODO: выташить число людей
 
+        # def simulation_func(rng, alpha, beta, size=None):
+        #     self.simulate(
+        #         alpha=alpha, 
+        #         beta=beta, 
+        #         initial_infectious=self.initial_infectious, 
+        #         rho=5e5, 
+        #         modeling_duration=int(len(data))
+        #     )
+        #     return self.get_newly_infected()
+        
+        # with pm.Model() as model:
+        #     alpha = pm.Uniform(name="a", lower=0, upper=1)
+        #     beta = pm.Uniform(name="b", lower=0, upper=1)
 
-        idata = Model.context_manager(self.initial_infectious, data)
+
+        #     sim = pm.Simulator("sim", simulation_func, alpha, beta,
+        #                     epsilon=10, observed=data)
+            
+        #     idata = pm.sample_smc()
+
+        idata = self.Model.context_manager(self.initial_infectious, data)
 
         return idata, data

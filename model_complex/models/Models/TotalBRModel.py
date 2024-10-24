@@ -1,12 +1,22 @@
 import numpy as np
+import pymc as pm
 
 from ..Interface import BRModel
 
 
+
+
 class TotalBRModel(BRModel):
-    """
-    Model for total case
-    """
+
+    def __init__(self):
+        """
+        Model for total case
+        """
+        self.alpha_len = (1,)
+        self.beta_len = (1,)
+
+        self.groups = ['total']
+        self.pattern = ['{}']
 
     def simulate(
         self, 
@@ -14,7 +24,7 @@ class TotalBRModel(BRModel):
         beta: float, 
         initial_infectious: int,
         rho: int, 
-        modeling_duration=150
+        modeling_duration: int
     ):
         """
         Download epidemiological excel data file from the subdirectory of epid_data.
@@ -28,6 +38,9 @@ class TotalBRModel(BRModel):
 
         :return:
         """       
+        assert len(alpha) == self.alpha_len[0]
+        assert len(beta) == self.beta_len[0]
+        assert type(initial_infectious) == int
 
         # SETTING UP INITIAL CONDITIONS
         initial_susceptible = int(alpha*rho)
@@ -53,6 +66,3 @@ class TotalBRModel(BRModel):
 
     def get_newly_infected(self):
         return self.newly_infected
-
-    def data_columns(self, epid_data):
-        return epid_data['total']
