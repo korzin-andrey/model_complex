@@ -1,5 +1,5 @@
 import pandas as pd
-import datetime
+from dateutil import parser
 
 
 class EpidData:
@@ -7,8 +7,8 @@ class EpidData:
         self, 
         city: str, 
         path: str,
-        start: datetime, 
-        end: datetime,
+        start: str, 
+        end: str,
     ) -> pd.DataFrame:
         """
         EpidData class
@@ -19,10 +19,14 @@ class EpidData:
         :param city: Name of city  
         :param path: path to directory 'epid_data'
         :param start: First day of extracted data
+            String of the form "mm-dd-yy"
         :param end: Last day of extracted data
+            String of the form "mm-dd-yy"
 
         :return: Extracted data in the desired interval
         """
+        start = parser.parse(start)
+        end = parser.parse(end)
 
         self.start = start
         self.city = city
@@ -47,7 +51,7 @@ class EpidData:
         self.epid_df = pd.read_excel(
             self.path.rstrip('/') + f'/data/{self.city}/epid_data.xlsx'
         )
-        self.epid_df = self.epid_df.apply(lambda x: x.fillna(0), axis=0)
+        self.epid_df = self.epid_df.apply(lambda x: x.fillna(float('nan')), axis=0)
 
 
     def __get_wave(self) -> None:

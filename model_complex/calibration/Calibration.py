@@ -1,73 +1,78 @@
-import scipy
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import pymc as pm
-from dateutil import parser
+import pandas as pd
+import optuna
+from sklearn.metrics import r2_score
 
-from ...epid_data import EpidData
-from ..models import FactoryModel
+from ..models import BRModel
 
 class Calibration:
 
     def __init__(        
         self,
-        incidence: str,
-        initial_infectious: list[int],
+        init_infectious: list[int]|int,
+        model: BRModel,
+        data: pd.DataFrame,
         ) -> None:
         """
         Calibration class
 
         TODO
 
-        :param incidence: Name of city  
-        :param initial_infectious: Name of city  
-        :param people_nums: Name of city  
+        :param init_infectious: Number of initial infected people  
+        :param model: Model for calibration  
+        :param data: Observed data for calibrating process  
         """
 
-        self.model = FactoryModel.get_model(incidence)
-        self.initial_infectious = initial_infectious
-
-    def plot(self, city, path, start, end):
-        epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
-        BRModel = self.model
-        data = BRModel.data_columns(epid_data)
-
-        fig, ax = plt.subplots(1, 1, figsize=(6, 4))
-        ax.plot(list(data), "o")
+        self.init_infectious = init_infectious
+        self.model = model
+        self.data = data
 
 
-    def calibrate__abc(self, city, path, start, end): # -> 
+    def abc_calibration(self):
         """
-        TODO 
-        :param city: Name of the city  
-        :param path: Path to directory 'epid_data'
-        :param start: First day of extracted data
-            String of the form "mm-dd-yy"
-        :param end: Last day of extracted data
-            String of the form "mm-dd-yy"
+        TODO
+
         """
 
-        epid_data = EpidData(city, path, parser.parse(start), parser.parse(end))
+        rho = self.data['population_age_0-14'].iloc[-1] + self.data['population_age_15+'].iloc[-1]
 
-        BRModel = self.model
-        data = BRModel.data_columns(epid_data)
-
-        # TODO: выташить число людей
+        data, alpha_len, beta_len = self.model.params(self.data)
 
         def simulation_func(rng, alpha, beta, size=None):
-            BRModel.simulate(alpha=alpha, beta=beta, initial_infectious=self.initial_infectious, rho=5e5, modeling_duration=len(data))
-            return BRModel.get_newly_infected()
+            self.model.simulate(
+                alpha=alpha, 
+                beta=beta, 
+                initial_infectious=self.init_infectious, 
+                rho=rho, 
+                modeling_duration=int(len(data)/alpha_len[0])
+            )
+            return self.model.get_newly_infected()
         
         with pm.Model() as model:
-            alpha = pm.Uniform(name="alpha", lower=0, upper=1, )
-            beta = pm.Uniform(name="beta", lower=0, upper=1, )
-            sim = pm.Simulator("sim", simulation_func, params=(alpha, beta), 
+            alpha = pm.Uniform(name="a", lower=0, upper=1, shape=alpha_len)
+            beta = pm.Uniform(name="b", lower=0, upper=1, shape=beta_len)
+
+
+            sim = pm.Simulator("sim", simulation_func, alpha, beta,
                             epsilon=10, observed=data)
+            
             idata = pm.sample_smc()
-        self.model.is_calibrated = True
-        return idata, simulation_func, data, self.model
+
+        return idata, data, simulation_func
     
-    # TODO: write calibration method using optuna
-    def calibrate_optuna():
-        pass
+    def optuna_calibration(self):
+        
+        def model(trial):
+
+            alpha = trial.suggest_float('alpha', 0, 1)
+            beta = trial.suggest_float('beta', 0, 1)
+
+
+            return r2_score
+
+        #study =  optuna.create_study(study_name=study_name, storage=storage_name, sampler=optuna.samplers.TPESampler(), 
+        #                             pruner=optuna.pruners.HyperbandPruner, load_if_exists=True, 
+        #                             direction="maximize")
+        study = optuna.create_study(sampler=optuna.samplers.CmaEsSampler(), direction="maximize")
+        n_trials = 5000
+        study.optimize(model, n_trials=n_trials)

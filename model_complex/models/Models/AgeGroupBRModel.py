@@ -1,20 +1,33 @@
 import numpy as np
+import pymc as pm
 
 from ..Interface import BRModel
 
 
 class AgeGroupBRModel(BRModel):
-    """
-    Model for case of several age-group
-    """
+
+    def __init__(self):
+        """
+        Model for case of several age-group
+        """
+        self.alpha_len = (2,)
+        self.beta_len = (4,)
+
+        self.groups = ['age_15+', 'age_0-14']
+        self.pattern = [
+            'strain_B_{}_cases', 
+            'strain_A(H3N2)_{}_cases', 
+            'strain_A(H1N1)pdm09_{}_cases'
+        ]
+
 
     def simulate(
         self, 
         alpha: list[float], 
-        beta: list[list[float]], 
+        beta: list[float], 
         initial_infectious: list[int], 
         rho: int, 
-        modeling_duration=150
+        modeling_duration: int
     ):
         """
         Download epidemiological excel data file from the subdirectory of epid_data.
@@ -28,17 +41,14 @@ class AgeGroupBRModel(BRModel):
 
         :return:
         """
-
-        assert len(alpha[0]) == 2 
-        assert len(beta) == 2 
-        assert len(beta[0]) == 2 
+        assert len(alpha) == self.alpha_len[0]
+        assert len(beta) == self.beta_len[0]
         assert len(initial_infectious) == 2
 
-        self.newly_infected_all = []
+        self.newly_infected = []
 
-        # SETTING UP INITIAL CONDITIONS
         for j in range(2):
-
+            # SETTING UP INITIAL CONDITIONS
             total_infected = np.zeros(modeling_duration)
             newly_infected = np.zeros(modeling_duration)
             susceptible = np.zeros(modeling_duration)
@@ -46,7 +56,7 @@ class AgeGroupBRModel(BRModel):
             total_infected[0] = initial_infectious[j] 
             newly_infected[0] = initial_infectious[j]
 
-            initial_susceptible = int(alpha[0][j]*rho)
+            initial_susceptible = int(alpha[j]*rho)
             susceptible[0] = initial_susceptible
 
             # SIMULATION
@@ -61,7 +71,7 @@ class AgeGroupBRModel(BRModel):
                 
                 newly_infected[day+1] = min(
                     sum(
-                        beta[i][j] * susceptible[day] * total_infected[day] / rho
+                        beta[2*i + j] * susceptible[day] * total_infected[day] / rho
                             for i in range(2)
                     ),
                     susceptible[day]
@@ -69,13 +79,8 @@ class AgeGroupBRModel(BRModel):
 
                 susceptible[day+1] = susceptible[day] - newly_infected[day+1]      
 
-            self.newly_infected_all.append(list(newly_infected))    
+            self.newly_infected += list(newly_infected)
+
 
     def get_newly_infected(self):
-        return self.newly_infected_all
-
-    def data_columns(self, epid_data):
-        return [
-            list(epid_data['strain_B_age_15+_cases'] + epid_data['strain_A(H3N2)_age_15+_cases'] + epid_data['strain_A(H1N1)pdm09_age_15+_cases']),
-            list(epid_data['strain_B_age_0-14_cases'] + epid_data['strain_A(H3N2)_age_0-14_cases'] + epid_data['strain_A(H1N1)pdm09_age_0-14_cases'])
-        ]
+        return self.newly_infected
