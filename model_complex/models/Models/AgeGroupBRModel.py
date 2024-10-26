@@ -10,8 +10,8 @@ class AgeGroupBRModel(BRModel):
         """
         Model for case of several age-group
         """
-        self.alpha_len = (2,)
-        self.beta_len = (4,)
+        self.alpha_len = 2
+        self.beta_len = 4
 
         self.groups = ['age_15+', 'age_0-14']
         self.pattern = [
@@ -41,9 +41,9 @@ class AgeGroupBRModel(BRModel):
 
         :return:
         """
-        assert len(alpha) == self.alpha_len[0]
-        assert len(beta) == self.beta_len[0]
-        assert len(initial_infectious) == 2
+        assert len(alpha) == self.alpha_len
+        assert len(beta) == self.beta_len
+        assert len(initial_infectious) == self.alpha_len
 
         self.newly_infected = []
 
@@ -82,5 +82,7 @@ class AgeGroupBRModel(BRModel):
             self.newly_infected += list(newly_infected)
 
 
-    def get_newly_infected(self):
-        return self.newly_infected
+    def get_result(self):
+        l = len(self.newly_infected)//2
+#                           newly_infected                               data
+        return [self.newly_infected[:l], self.newly_infected[l:]], [self.data[:l], self.data[l:]]

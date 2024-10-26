@@ -12,8 +12,8 @@ class TotalBRModel(BRModel):
         """
         Model for total case
         """
-        self.alpha_len = (1,)
-        self.beta_len = (1,)
+        self.alpha_len = 1
+        self.beta_len = 1
 
         self.groups = ['total']
         self.pattern = ['{}']
@@ -38,9 +38,9 @@ class TotalBRModel(BRModel):
 
         :return:
         """       
-        assert len(alpha) == self.alpha_len[0]
-        assert len(beta) == self.beta_len[0]
-        assert len(initial_infectious) == self.alpha_len[0]
+        assert len(alpha) == self.alpha_len
+        assert len(beta) == self.beta_len
+        assert len(initial_infectious) == self.alpha_len
 
         # SETTING UP INITIAL CONDITIONS
         initial_susceptible = int(alpha[0]*rho)
@@ -64,5 +64,5 @@ class TotalBRModel(BRModel):
 
         self.newly_infected = newly_infected    
 
-    def get_newly_infected(self):
-        return self.newly_infected
+    def get_result(self):
+        return self.newly_infected, self.data

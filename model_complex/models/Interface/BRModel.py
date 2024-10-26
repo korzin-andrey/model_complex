@@ -6,8 +6,8 @@ class BRModel:
     br_func_array = [0.1, 0.1, 1, 0.9, 0.55, 0.3, 0.15, 0.05]
 
     def __init__(self):
-        self.alpha_len = (0,)
-        self.beta_len = (0,)
+        self.alpha_len = 0
+        self.beta_len = 0
 
         self.groups = []
         self.pattern = []
@@ -24,7 +24,7 @@ class BRModel:
         pass
     
 
-    def get_newly_infected(self):
+    def get_result(self):
         pass
     
     
@@ -46,9 +46,9 @@ class BRModel:
         """
         TODO
         """
-        data = []
+        self.data = []
 
         for gr in self.groups:
-            data += list(sum(epid_data[pat.format(gr)] for pat in self.pattern))
+            self.data += list(sum(epid_data[pat.format(gr)] for pat in self.pattern))
 
-        return (data, self.alpha_len, self.beta_len)
+        return (self.data, self.alpha_len, self.beta_len)
