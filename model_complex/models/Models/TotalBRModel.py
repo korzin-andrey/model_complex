@@ -38,9 +38,9 @@ class TotalBRModel(BRModel):
 
         :return:
         """       
-        assert len(alpha) == self.alpha_len
-        assert len(beta) == self.beta_len
-        assert len(initial_infectious) == self.alpha_len
+        assert len(alpha) == self.alpha_len, f"Размерность alpha={self.alpha_len}, а получена {len(alpha)}"
+        assert len(beta) == self.beta_len, f"Размерность beta={self.beta_len}, а получена {len(beta)}"
+        assert len(initial_infectious) == self.alpha_len, f"Размерность initial_infectious={self.alpha_len}, а получена {len(initial_infectious)}"
 
         # SETTING UP INITIAL CONDITIONS
         initial_susceptible = int(alpha[0]*rho)
@@ -63,6 +63,3 @@ class TotalBRModel(BRModel):
             susceptible[day+1] = susceptible[day] - newly_infected[day+1]      
 
         self.newly_infected = newly_infected    
-
-    def get_result(self):
-        return self.newly_infected, self.data

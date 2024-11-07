@@ -23,10 +23,6 @@ class BRModel:
     ):
         pass
     
-
-    def get_result(self):
-        pass
-    
     
     def br_function(self, day: int) -> int:
         """
@@ -52,3 +48,13 @@ class BRModel:
             self.data += list(sum(epid_data[pat.format(gr)] for pat in self.pattern))
 
         return (self.data, self.alpha_len, self.beta_len)
+    
+
+    def _chunk(self, lst, size):
+        return [lst[i:i+size] for i in range(0, len(lst), size)]
+
+
+    def get_result(self):
+        size = len(self.newly_infected)//self.alpha_len
+
+        return self._chunk(self.newly_infected, size), self._chunk(self.data, size)

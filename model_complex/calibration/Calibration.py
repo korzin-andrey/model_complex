@@ -3,6 +3,7 @@ import pandas as pd
 import optuna
 from sklearn.metrics import r2_score
 import numpy as np
+from scipy.optimize import dual_annealing
 
 from ..models import BRModel
 
@@ -25,7 +26,7 @@ class Calibration:
         :param model: Model for calibration  
         :param data: Observed data for calibrating process  
         """
-
+        self.rho = data['population_age_0-14'].iloc[-1] + data['population_age_15+'].iloc[-1]
         self.init_infectious = init_infectious
         self.model = model
         self.data = data
@@ -37,8 +38,6 @@ class Calibration:
 
         """
 
-        rho = self.data['population_age_0-14'].iloc[-1] + self.data['population_age_15+'].iloc[-1]
-
         data, alpha_len, beta_len = self.model.params(self.data)
 
         def simulation_func(rng, alpha, beta, size=None):
@@ -46,7 +45,7 @@ class Calibration:
                 alpha=alpha, 
                 beta=beta, 
                 initial_infectious=self.init_infectious, 
-                rho=round(rho/10), 
+                rho=round(self.rho/10), 
                 modeling_duration=int(len(data)/alpha_len)
             )
             return self.model.newly_infected
@@ -67,31 +66,29 @@ class Calibration:
         alpha = [np.random.choice(posterior["alpha"][i], size=100) for i in range(alpha_len)]
         beta = [np.random.choice(posterior["beta"][i], size=100) for i in range(beta_len)]
         
-        return posterior, round(rho/10)
+        return alpha, beta, round(self.rho/10)
     
 
-    def optuna_calibration(self):
 
-        rho = self.data['population_age_0-14'].iloc[-1] + self.data['population_age_15+'].iloc[-1]
+    def optuna_calibration(self, n_trials=1000):
+        """
+        TODO
+
+        """
 
         data, alpha_len, beta_len = self.model.params(self.data)
 
         def model(trial):
 
-            alpha = []
-            beta = []
-            
-            for i in range(alpha_len):
-                alpha.append( trial.suggest_float(f'alpha_{i}', 0, 1) )
+            alpha = [trial.suggest_float(f'alpha_{i}', 0, 1) for i in range(alpha_len)]
+            beta = [trial.suggest_float(f'beta_{i}', 0, 1) for i in range(beta_len)]
 
-            for i in range(beta_len):
-                beta.append( trial.suggest_float(f'beta_{i}', 0, 1) )
 
             self.model.simulate(
                 alpha=alpha, 
                 beta=beta, 
                 initial_infectious=self.init_infectious, 
-                rho=round(rho/10), 
+                rho=round(self.rho/10), 
                 modeling_duration=int(len(data)/alpha_len)
             )
 
@@ -99,10 +96,44 @@ class Calibration:
 
 
         study = optuna.create_study(direction="maximize")
-        n_trials = 5000
         study.optimize(model, n_trials=n_trials)
 
         alpha = [study.best_params[f'alpha_{i}'] for i in range(alpha_len)]
         beta = [study.best_params[f'beta_{i}'] for i in range(beta_len)]
 
-        return alpha, beta, round(rho/10)
+        return alpha, beta, round(self.rho/10)
+
+
+
+    def annealing_calibration(self):
+        """
+        TODO
+
+        """
+        
+        data, alpha_len, beta_len = self.model.params(self.data)
+
+        lw = [0] * (alpha_len + beta_len)
+        up = [1] * (alpha_len + beta_len)
+
+        def model(x):
+ 
+            alpha = x[:alpha_len]
+            beta = x[alpha_len:]
+
+            self.model.simulate(
+                alpha=alpha, 
+                beta=beta, 
+                initial_infectious=self.init_infectious, 
+                rho=round(self.rho/10), 
+                modeling_duration=int(len(data)/alpha_len)
+            )
+
+            return -r2_score(data, self.model.newly_infected)
+        
+        ret = dual_annealing(model, bounds=list(zip(lw, up)))
+
+        alpha = ret.x[:alpha_len]
+        beta = ret.x[alpha_len:]
+
+        return alpha, beta, round(self.rho/10)
