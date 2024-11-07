@@ -56,7 +56,7 @@ class Calibration:
 
 
             sim = pm.Simulator("sim", simulation_func, alpha, beta,
-                            epsilon=5, observed=data)
+                            epsilon=3500, observed=data)
             
             idata = pm.sample_smc()
 

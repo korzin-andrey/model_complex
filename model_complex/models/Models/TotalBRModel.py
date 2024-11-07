@@ -20,8 +20,8 @@ class TotalBRModel(BRModel):
 
     def simulate(
         self, 
-        alpha: list[float], 
-        beta: list[float], 
+        alpha: list[float]|float, 
+        beta: list[float]|float, 
         initial_infectious: list[int],
         rho: int, 
         modeling_duration: int
