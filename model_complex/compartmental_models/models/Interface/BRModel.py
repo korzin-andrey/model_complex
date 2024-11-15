@@ -43,14 +43,3 @@ class BRModel:
             return 0
         return self.br_func_array[day]
     
-
-    def params(self, epid_data):
-        """
-        TODO
-        """
-        data = []
-
-        for gr in self.groups:
-            data += list(sum(epid_data[pat.format(gr)] for pat in self.pattern))
-
-        return (data, self.alpha_len, self.beta_len)

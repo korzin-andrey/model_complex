@@ -4,19 +4,14 @@ import pymc as pm
 from ..Interface import BRModel
 
 
-
-
 class TotalBRModel(BRModel):
 
     def __init__(self):
         """
         Model for total case
         """
-        self.alpha_len = (1,)
-        self.beta_len = (1,)
-
-        self.groups = ['total']
-        self.pattern = ['{}']
+        self.alpha_len = 1
+        self.beta_len = 1
 
     def simulate(
         self, 
@@ -38,9 +33,9 @@ class TotalBRModel(BRModel):
 
         :return:
         """       
-        assert len(alpha) == self.alpha_len[0]
-        assert len(beta) == self.beta_len[0]
-        assert len(initial_infectious) == self.alpha_len[0]
+        assert len(alpha) == self.alpha_len
+        assert len(beta) == self.beta_len
+        assert len(initial_infectious) == self.alpha_len
 
         # SETTING UP INITIAL CONDITIONS
         initial_susceptible = int(alpha[0]*rho)

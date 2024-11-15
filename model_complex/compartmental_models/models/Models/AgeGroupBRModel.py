@@ -78,7 +78,7 @@ class AgeGroupBRModel(BRModel):
                 )
 
                 susceptible[day+1] = susceptible[day] - newly_infected[day+1]      
-
+                
             self.newly_infected += list(newly_infected)
 
 

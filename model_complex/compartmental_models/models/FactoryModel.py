@@ -6,7 +6,7 @@ from .Interface import BRModel
 
 class FactoryModel:
     @staticmethod
-    def get_model(self, model_type: str):
+    def get_model(model_type: str):
         models_list = ['BR-total', 'BR-age-group']
         if model_type in models_list:
             if model_type == 'BR-total':

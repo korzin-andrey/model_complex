@@ -11,7 +11,8 @@ class Calibration:
         self,
         init_infectious: list[int]|int,
         model: BRModel,
-        data: pd.DataFrame,
+        data: list,
+        rho: int
         ) -> None:
         """
         Calibration class
@@ -20,12 +21,13 @@ class Calibration:
 
         :param init_infectious: Number of initial infected people  
         :param model: Model for calibration  
-        :param data: Observed data for calibrating process  
+        :param data: Observed data for calibrating process 
+        :param rho: Population size 
         """
-
         self.init_infectious = init_infectious
         self.model = model
         self.data = data
+        self.rho = rho
 
 
     def abc_calibration(self):
@@ -33,41 +35,34 @@ class Calibration:
         TODO
 
         """
-
-        rho = self.data['population_age_0-14'].iloc[-1] + self.data['population_age_15+'].iloc[-1]
-
-        data, alpha_len, beta_len = self.model.params(self.data)
-
         def simulation_func(rng, alpha, beta, size=None):
             self.model.simulate(
-                alpha=alpha, 
-                beta=beta, 
-                initial_infectious=self.init_infectious, 
-                rho=rho, 
-                modeling_duration=int(len(data)/alpha_len[0])
+                alpha=alpha,
+                beta=beta,
+                initial_infectious=self.init_infectious,
+                rho=self.rho,
+                modeling_duration=int(len(self.data)/self.model.alpha_len)
             )
             return self.model.get_newly_infected()
         
         with pm.Model() as model:
-            alpha = pm.Uniform(name="a", lower=0, upper=1, shape=alpha_len)
-            beta = pm.Uniform(name="b", lower=0, upper=1, shape=beta_len)
-
+            alpha = pm.Uniform(name="a", lower=0,
+                               upper=1, shape=(self.model.alpha_len, ))
+            beta = pm.Uniform(name="b", lower=0, 
+                              upper=1, shape=(self.model.beta_len, ))
 
             sim = pm.Simulator("sim", simulation_func, alpha, beta,
-                            epsilon=10, observed=data)
+                            epsilon=10, observed=self.data)
             
-            idata = pm.sample_smc()
+            idata = pm.sample_smc(progressbar=False)
 
-        return idata, data, simulation_func
+        return idata, self.data, simulation_func
     
     def optuna_calibration(self):
         
         def model(trial):
-
             alpha = trial.suggest_float('alpha', 0, 1)
             beta = trial.suggest_float('beta', 0, 1)
-
-
             return r2_score
 
         #study =  optuna.create_study(study_name=study_name, storage=storage_name, sampler=optuna.samplers.TPESampler(), 
