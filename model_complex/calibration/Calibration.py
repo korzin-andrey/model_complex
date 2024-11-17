@@ -16,6 +16,7 @@ class Calibration:
         init_infectious: list[int]|int,
         model: BRModel,
         data: pd.DataFrame,
+        rho: int,
         ) -> None:
         """
         Calibration class
@@ -25,8 +26,9 @@ class Calibration:
         :param init_infectious: Number of initial infected people  
         :param model: Model for calibration  
         :param data: Observed data for calibrating process  
+        :param rho: People's population 
         """
-        self.rho = data['population_age_0-14'].iloc[-1] + data['population_age_15+'].iloc[-1]
+        self.rho = rho
         self.init_infectious = init_infectious
         self.model = model
         self.data = data
@@ -45,7 +47,7 @@ class Calibration:
                 alpha=alpha, 
                 beta=beta, 
                 initial_infectious=self.init_infectious, 
-                rho=round(self.rho/10), 
+                rho=self.rho, 
                 modeling_duration=int(len(data)/alpha_len)
             )
             return self.model.newly_infected
@@ -55,10 +57,10 @@ class Calibration:
             beta = pm.Uniform(name="beta", lower=0, upper=1, shape=(beta_len,))
 
 
-            sim = pm.Simulator("sim", simulation_func, alpha, beta,
+            sim = pm.Simulator("sim", simulation_func, [*list(alpha), 0 , 0], beta,
                             epsilon=3500, observed=data)
             
-            idata = pm.sample_smc()
+            idata = pm.sample_smc(progressbar=False)
 
         posterior = idata.posterior.stack(samples=("draw", "chain"))
 
@@ -66,7 +68,7 @@ class Calibration:
         alpha = [np.random.choice(posterior["alpha"][i], size=100) for i in range(alpha_len)]
         beta = [np.random.choice(posterior["beta"][i], size=100) for i in range(beta_len)]
         
-        return alpha, beta, round(self.rho/10)
+        return alpha, beta
     
 
 
@@ -88,7 +90,7 @@ class Calibration:
                 alpha=alpha, 
                 beta=beta, 
                 initial_infectious=self.init_infectious, 
-                rho=round(self.rho/10), 
+                rho=self.rho, 
                 modeling_duration=int(len(data)/alpha_len)
             )
 
@@ -101,7 +103,16 @@ class Calibration:
         alpha = [study.best_params[f'alpha_{i}'] for i in range(alpha_len)]
         beta = [study.best_params[f'beta_{i}'] for i in range(beta_len)]
 
-        return alpha, beta, round(self.rho/10)
+        # запускаем, чтобю в модели были результаты с лучшими параметрами
+        self.model.simulate(
+            alpha=alpha, 
+            beta=beta, 
+            initial_infectious=self.init_infectious, 
+            rho=self.rho, 
+            modeling_duration=int(len(data)/alpha_len)
+        )
+
+        return alpha, beta
 
 
 
@@ -125,7 +136,7 @@ class Calibration:
                 alpha=alpha, 
                 beta=beta, 
                 initial_infectious=self.init_infectious, 
-                rho=round(self.rho/10), 
+                rho=self.rho, 
                 modeling_duration=int(len(data)/alpha_len)
             )
 
@@ -136,4 +147,13 @@ class Calibration:
         alpha = ret.x[:alpha_len]
         beta = ret.x[alpha_len:]
 
-        return alpha, beta, round(self.rho/10)
+        # запускаем, чтобю в модели были результаты с лучшими параметрами
+        self.model.simulate(
+            alpha=alpha, 
+            beta=beta, 
+            initial_infectious=self.init_infectious, 
+            rho=self.rho, 
+            modeling_duration=int(len(data)/alpha_len)
+        )
+
+        return alpha, beta
