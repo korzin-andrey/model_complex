@@ -10,15 +10,8 @@ class AgeGroupBRModel(BRModel):
         """
         Model for case of several age-group
         """
-        self.alpha_len = (2,)
-        self.beta_len = (4,)
-
-        self.groups = ['age_15+', 'age_0-14']
-        self.pattern = [
-            'strain_B_{}_cases', 
-            'strain_A(H3N2)_{}_cases', 
-            'strain_A(H1N1)pdm09_{}_cases'
-        ]
+        self.alpha_len = 2
+        self.beta_len = 4
 
 
     def simulate(
@@ -41,8 +34,8 @@ class AgeGroupBRModel(BRModel):
 
         :return:
         """
-        assert len(alpha) == self.alpha_len[0]
-        assert len(beta) == self.beta_len[0]
+        assert len(alpha) == self.alpha_len
+        assert len(beta) == self.beta_len
         assert len(initial_infectious) == 2
 
         self.newly_infected = []

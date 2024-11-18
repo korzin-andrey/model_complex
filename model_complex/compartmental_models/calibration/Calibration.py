@@ -46,9 +46,9 @@ class Calibration:
             return self.model.get_newly_infected()
         
         with pm.Model() as model:
-            alpha = pm.Uniform(name="a", lower=0,
+            alpha = pm.Uniform(name="alpha", lower=0,
                                upper=1, shape=(self.model.alpha_len, ))
-            beta = pm.Uniform(name="b", lower=0, 
+            beta = pm.Uniform(name="beta", lower=0, 
                               upper=1, shape=(self.model.beta_len, ))
 
             sim = pm.Simulator("sim", simulation_func, alpha, beta,

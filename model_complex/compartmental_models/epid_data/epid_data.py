@@ -38,13 +38,16 @@ def date_extract(input_string):
         raise Exception("Incorrect date format!")
 
 class EpidData:
+    REGIME_TOTAL = 'total'
+    REGIME_AGE = 'age'
+    REGIME_STRAIN = 'strain'
+
     def __init__(
         self, 
         city: str, 
         path: str,
         start_time: str, 
-        end_time: str,
-        regime: str
+        end_time: str
     ):
         """
         EpidData class
@@ -58,13 +61,12 @@ class EpidData:
             String of the form "mm-dd-yy"
         :param end: End date for extraction
             String of the form "mm-dd-yy"
-        :param strain: Name of strain. See strain_dict for strain names.
+        :param regime: Name of regime. Allowed strings: 'total', 'age', 'strain'. 
         """
         self.strain_dict = {'A (субтип не определен)': 0,
                             'A(H1)pdm09': 1,
                             'A(H3)': 2, 'B': 3
                             }
-        self.regime = regime
         self.start_time = datetime.datetime.strptime(start_time, "%d-%m-%Y")
         self.end_time = datetime.datetime.strptime(end_time, "%d-%m-%Y")
         self.city = city
@@ -72,8 +74,10 @@ class EpidData:
         self.strains_number = 4
         self.cases_df = None
         self.pcr_df = None
+        self.returned_df = None
+        self.__read_data_to_dataframe()
 
-    def __read_epid_data_to_dataframe(self) -> None:
+    def __read_data_to_dataframe(self) -> None:
         """
         Download excel file from epid_data folder
         :return: 
@@ -105,28 +109,53 @@ class EpidData:
         Get data from the desired time interval
         :return:
         """ 
-        self.cases_df = self.cases_df[(self.cases_df['datetime'] > self.start_time) &
+        self.returned_df = self.cases_df[(self.cases_df['datetime'] > self.start_time) &
                                       (self.cases_df['datetime'] < self.end_time)]
 
 
-    def __transform_data_for_regime(self) -> None:
-        if self.regime == 'total':
+    def __transform_data_for_regime(self, regime) -> None:
+        if regime == self.REGIME_TOTAL:
             # TODO: think about nan values. In epidemic data nan != 0.
-            self.cases_df['total_cases'] = self.cases_df.fillna(0)[['real_cases_strain_1', 
+            # That is why using method fillna(0) is slightly incorrect.
+            self.returned_df['total_cases'] = self.returned_df.fillna(0)[['real_cases_strain_1', 
                                                                'real_cases_strain_2', 
                                                                'real_cases_strain_3']].sum(axis=1)
-            self.cases_df = self.cases_df[['datetime', 'total_cases', 'total_population']]
-        if self.regime == 'age':
-            raise NotImplementedError
-        
+            self.returned_df = self.returned_df[['datetime', 'total_cases', 'total_population']]
+        if regime == self.REGIME_AGE:
+            self.returned_df['total_cases'] = self.returned_df.fillna(0)[['real_cases_strain_1', 
+                                                               'real_cases_strain_2', 
+                                                               'real_cases_strain_3']].sum(axis=1)
+            # sum up cases from age groups: 0-2, 3-6, 7-14 because we work with 0-14 and 15+
+            # TODO: think about nan values. In epidemic data nan != 0.
+            
+            self.returned_df['sars_cases_age_group_0-2'] = self.returned_df.fillna(0)[['sars_cases_age_group_0', 
+                                                               'sars_cases_age_group_1', 
+                                                               'sars_cases_age_group_2']].sum(axis=1)
+            self.returned_df['rel_cases_age_group_0-2'] = \
+            self.returned_df['sars_cases_age_group_0-2'] / self.returned_df['sars_total_cases']
+            self.returned_df['rel_cases_age_group_3'] = \
+            self.returned_df['sars_cases_age_group_3'] / self.returned_df['sars_total_cases']
+            
+            assert abs(self.returned_df['rel_cases_age_group_0-2'].iloc[1] + 
+                       self.returned_df['rel_cases_age_group_3'].iloc[1]) - 1 < 1e-5
 
-    def get_wave_data(self):
-        self.__read_epid_data_to_dataframe()
+            # final calculated cases
+            self.returned_df['age_group_0-2_cases'] = \
+            self.returned_df['rel_cases_age_group_0-2'] * self.returned_df['total_cases']
+            self.returned_df['age_group_3_cases'] = \
+            self.returned_df['rel_cases_age_group_3'] * self.returned_df['total_cases']
+            self.returned_df = self.returned_df[['datetime', 'age_group_0-2_cases', 
+                                           'age_group_3_cases', 'total_population']]
+            
+
+    def get_wave_data(self, regime):
         self.__get_time_period()
-        self.__transform_data_for_regime()
-        return self.cases_df
+        assert isinstance(self.returned_df, pd.DataFrame)
+        self.__transform_data_for_regime(regime)
+        return self.returned_df
 
-        
+
     def prepare_for_calibration(self):
-        return np.array(self.cases_df.drop(columns=['datetime', 'total_population'])).T.flatten()
+        return np.array(self.returned_df.drop(
+            columns=['datetime', 'total_population'])).T.flatten()
         
