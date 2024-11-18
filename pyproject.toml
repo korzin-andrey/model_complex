@@ -6,10 +6,10 @@ authors = ["Korzin A.I., Kaparulin T.I., Leonenko V.N."]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = ">=3.10,<3.13"
 openpyxl = "^3.1.5"
 numpy = ">=1.17.0,<2"
-pymc = "5.9.1"
+pymc = "5.18.0"
 ipywidgets = "^8.1.5"
 numpyro = "^0.15.3"
 blackjax = "^1.2.4"
