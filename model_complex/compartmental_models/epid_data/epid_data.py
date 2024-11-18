@@ -156,6 +156,7 @@ class EpidData:
 
 
     def prepare_for_calibration(self):
+        # TODO: add method for returning rho 
         return np.array(self.returned_df.drop(
             columns=['datetime', 'total_population'])).T.flatten()
         

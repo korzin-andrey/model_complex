@@ -50,10 +50,10 @@ class Calibration:
                                upper=1, shape=(self.model.alpha_len, ))
             beta = pm.Uniform(name="beta", lower=0, 
                               upper=1, shape=(self.model.beta_len, ))
-
-            sim = pm.Simulator("sim", simulation_func, alpha, beta,
-                            epsilon=10, observed=self.data)
-            
+            # TODO: change strange approach for setting up equal dimensions for params
+            sim = pm.Simulator("sim", simulation_func, 
+                               [*list(alpha)] + [0]*(self.model.beta_len-self.model.alpha_len), 
+                               beta, epsilon=3500, observed=self.data)
             idata = pm.sample_smc(progressbar=False)
 
         return idata, self.data, simulation_func
