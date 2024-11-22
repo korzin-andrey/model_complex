@@ -26,26 +26,26 @@ class StrainBRModel(BRModel):
         if day >= len(self.br_func_array[strain]):
             return 0
         return self.br_func_array[strain][day]
-    
+
     def f(h, m, a):
         """
         Function determining the proportion of persons with a history of infection h
 
         :param h: protected against this strain
-        :param m: current strain 
+        :param m: current strain
         :param a: Proportion of susceptible persons among those infected
 
-        :return: people's susceptibility for current strain 
-        """        
-        return a if m==h else 1
+        :return: people's susceptibility for current strain
+        """
+        return a if m == h else 1
 
     def simulate(
-        self, 
-        alpha: list[float], 
-        beta: list[float], 
-        initial_infectious: list[int], 
-        rho: int, 
-        modeling_duration=150
+        self,
+        alpha: list[float],
+        beta: list[float],
+        initial_infectious: list[int],
+        rho: int,
+        modeling_duration=150,
     ):
         """
         Download epidemiological excel data file from the subdirectory of epid_data.
@@ -86,12 +86,12 @@ class StrainBRModel(BRModel):
         #     for day in range(modeling_duration-1):
         #         total_infected[day] = min(
         #             sum(
-        #                 newly_infected[day - tau] * self.br_function(tau) 
+        #                 newly_infected[day - tau] * self.br_function(tau)
         #                     for tau in range(len(self.br_func_array)) if (day - tau) >= 0
         #             ),
         #             rho
         #         )
-                
+
         #         newly_infected[day+1] = min(
         #             sum(
         #                 beta[i][j] * susceptible[day] * total_infected[day] / rho
@@ -100,12 +100,12 @@ class StrainBRModel(BRModel):
         #             susceptible[day]
         #         )
 
-        #         susceptible[day+1] = susceptible[day] - newly_infected[day+1]      
+        #         susceptible[day+1] = susceptible[day] - newly_infected[day+1]
 
-        #     self.newly_infected_all.append(newly_infected)    
+        #     self.newly_infected_all.append(newly_infected)
 
     def get_newly_infected(self):
         return self.newly_infected_all
 
     def data_columns(self, epid_data):
-        return epid_data['total']
+        return epid_data["total"]

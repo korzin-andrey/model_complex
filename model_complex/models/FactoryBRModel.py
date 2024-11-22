@@ -1,8 +1,8 @@
-from .Models import TotalBRModel
-from .Models import StrainBRModel
-# from .Models import StrainAgeGroupBRModel
-from .Models import AgeGroupBRModel
 from .Interface import BRModel
+
+# from .Models import StrainAgeGroupBRModel
+from .Models import AgeGroupBRModel, StrainBRModel, TotalBRModel
+
 
 class FactoryBRModel:
     @classmethod
