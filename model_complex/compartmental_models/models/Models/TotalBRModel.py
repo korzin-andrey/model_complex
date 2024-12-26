@@ -64,8 +64,25 @@ class TotalBRModel(BRModel):
 
         self.newly_infected = newly_infected
 
-    def get_newly_infected(self):
+    def get_daily_newly_infected(self):
         return self.newly_infected
+
+    def pad_array_to_multiple_of_seven(self, arr):
+        '''
+        Auxiliary function used for padding array of daily data by zeroes for converting
+        to weekly data
+        '''
+        current_size = len(arr)
+        new_size = (current_size + 6) // 7 * 7
+        padding_needed = new_size - current_size
+        padded_array = np.pad(arr, (0, padding_needed),
+                              mode='constant', constant_values=0)
+        return padded_array
+
+    def get_weekly_newly_infected(self):
+        daily_newly_infected_padded = self.pad_array_to_multiple_of_seven(
+            self.newly_infected)
+        return daily_newly_infected_padded.reshape(-1, 7).sum(axis=1)
 
     def set_best_params_after_calibration(self, best_params: ModelParams):
         self.best_calibration_params = best_params

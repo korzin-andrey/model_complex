@@ -6,18 +6,18 @@ import numpy as np
 
 # TODO: remove dicts from global namespace
 cases_table_from_dict_to_excel = {
-                    'date': 'Дата',
-                    'sars_total_cases': 'Всего_орви',
-                    'sars_cases_age_group_0': '0 - 2_орви',
-                    'sars_cases_age_group_1': '3 - 6_орви',
-                    'sars_cases_age_group_2': '7 - 14_орви',
-                    'sars_cases_age_group_3': '15 и ст._орви',
-                    'total_population': 'Всего',
-                    'population_age_group_0': '0 - 2',
-                    'population_age_group_1': '3 - 6',
-                    'population_age_group_2': '7 - 14',
-                    'population_age_group_3': '15 и ст.',
-                    }
+    'date': 'Дата',
+    'sars_total_cases': 'Всего_орви',
+    'sars_cases_age_group_0': '0 - 2_орви',
+    'sars_cases_age_group_1': '3 - 6_орви',
+    'sars_cases_age_group_2': '7 - 14_орви',
+    'sars_cases_age_group_3': '15 и ст._орви',
+    'total_population': 'Всего',
+    'population_age_group_0': '0 - 2',
+    'population_age_group_1': '3 - 6',
+    'population_age_group_2': '7 - 14',
+    'population_age_group_3': '15 и ст.',
+}
 
 pcr_table_from_excel_to_python = {'date': 'Дата',
                                   'tested_total': 'Число образцов тестированных на грипп',
@@ -37,16 +37,17 @@ def date_extract(input_string):
     else:
         raise Exception("Incorrect date format!")
 
+
 class EpidData:
     REGIME_TOTAL = 'total'
     REGIME_AGE = 'age'
     REGIME_STRAIN = 'strain'
 
     def __init__(
-        self, 
-        city: str, 
+        self,
+        city: str,
         path: str,
-        start_time: str, 
+        start_time: str,
         end_time: str
     ):
         """
@@ -83,70 +84,79 @@ class EpidData:
         :return: 
         """
         # read cases.xlsx file
-        excel_file_cases = pd.read_excel(self.path.rstrip('/') + 
+        excel_file_cases = pd.read_excel(self.path.rstrip('/') +
                                          f'/data/{self.city}/cases.xlsx')
-        self.cases_df = pd.DataFrame(columns=cases_table_from_dict_to_excel.keys())
+        self.cases_df = pd.DataFrame(
+            columns=cases_table_from_dict_to_excel.keys())
         for col_name in self.cases_df.columns:
             self.cases_df[col_name] = excel_file_cases[cases_table_from_dict_to_excel[col_name]]
         self.cases_df['datetime'] = self.cases_df['date'].apply(date_extract)
         self.cases_df = self.cases_df.fillna(float('nan'))
-        
+
         # read pcr.xlsx file
-        excel_file_pcr = pd.read_excel(self.path.rstrip('/') + f'/data/{self.city}/pcr.xlsx')
-        self.pcr_df = pd.DataFrame(columns=pcr_table_from_excel_to_python.keys())
+        excel_file_pcr = pd.read_excel(
+            self.path.rstrip('/') + f'/data/{self.city}/pcr.xlsx')
+        self.pcr_df = pd.DataFrame(
+            columns=pcr_table_from_excel_to_python.keys())
         for col_name in self.pcr_df.columns:
             self.pcr_df[col_name] = excel_file_pcr[pcr_table_from_excel_to_python[col_name]]
         self.pcr_df['datetime'] = self.pcr_df['date'].apply(date_extract)
         self.pcr_df = self.pcr_df.fillna(float('nan'))
         for strain_index in range(self.strains_number):
             str_ind = str(strain_index)
-            self.cases_df['rel_strain_' + str_ind] = self.pcr_df['tested_strain_' + str_ind]/self.pcr_df['tested_total']
-            self.cases_df['real_cases_strain_' + str_ind] = (self.cases_df['rel_strain_' + str_ind]*self.cases_df['sars_total_cases']).round()
-
+            self.cases_df['rel_strain_' + str_ind] = self.pcr_df['tested_strain_' +
+                                                                 str_ind]/self.pcr_df['tested_total']
+            self.cases_df['real_cases_strain_' + str_ind] = (
+                self.cases_df['rel_strain_' + str_ind]*self.cases_df['sars_total_cases']).round()
 
     def __get_time_period(self) -> None:
         """
         Get data from the desired time interval
         :return:
-        """ 
+        """
         self.returned_df = self.cases_df[(self.cases_df['datetime'] > self.start_time) &
-                                      (self.cases_df['datetime'] < self.end_time)]
-
+                                         (self.cases_df['datetime'] < self.end_time)]
 
     def __transform_data_for_regime(self, regime) -> None:
         if regime == self.REGIME_TOTAL:
             # TODO: think about nan values. In epidemic data nan != 0.
             # That is why using method fillna(0) is slightly incorrect.
-            self.returned_df['total_cases'] = self.returned_df.fillna(0)[['real_cases_strain_1', 
-                                                               'real_cases_strain_2', 
-                                                               'real_cases_strain_3']].sum(axis=1)
-            self.returned_df = self.returned_df[['datetime', 'total_cases', 'total_population']]
-        if regime == self.REGIME_AGE:
-            self.returned_df['total_cases'] = self.returned_df.fillna(0)[['real_cases_strain_1', 
-                                                               'real_cases_strain_2', 
-                                                               'real_cases_strain_3']].sum(axis=1)
+            self.returned_df['total_cases'] = self.returned_df.fillna(0)[['real_cases_strain_1',
+                                                                          'real_cases_strain_2',
+                                                                          'real_cases_strain_3']].sum(axis=1)
+            self.returned_df = self.returned_df[[
+                'datetime', 'total_cases', 'total_population']]
+        elif regime == self.REGIME_AGE:
+            self.returned_df['total_cases'] = self.returned_df.fillna(0)[['real_cases_strain_1',
+                                                                          'real_cases_strain_2',
+                                                                          'real_cases_strain_3']].sum(axis=1)
             # sum up cases from age groups: 0-2, 3-6, 7-14 because we work with 0-14 and 15+
             # TODO: think about nan values. In epidemic data nan != 0.
-            
-            self.returned_df['sars_cases_age_group_0-2'] = self.returned_df.fillna(0)[['sars_cases_age_group_0', 
-                                                               'sars_cases_age_group_1', 
-                                                               'sars_cases_age_group_2']].sum(axis=1)
+
+            self.returned_df['sars_cases_age_group_0-2'] = self.returned_df.fillna(0)[['sars_cases_age_group_0',
+                                                                                       'sars_cases_age_group_1',
+                                                                                       'sars_cases_age_group_2']].sum(axis=1)
             self.returned_df['rel_cases_age_group_0-2'] = \
-            self.returned_df['sars_cases_age_group_0-2'] / self.returned_df['sars_total_cases']
+                self.returned_df['sars_cases_age_group_0-2'] / \
+                self.returned_df['sars_total_cases']
             self.returned_df['rel_cases_age_group_3'] = \
-            self.returned_df['sars_cases_age_group_3'] / self.returned_df['sars_total_cases']
-            
-            assert abs(self.returned_df['rel_cases_age_group_0-2'].iloc[1] + 
+                self.returned_df['sars_cases_age_group_3'] / \
+                self.returned_df['sars_total_cases']
+
+            assert abs(self.returned_df['rel_cases_age_group_0-2'].iloc[1] +
                        self.returned_df['rel_cases_age_group_3'].iloc[1]) - 1 < 1e-5
 
             # final calculated cases
             self.returned_df['age_group_0-2_cases'] = \
-            self.returned_df['rel_cases_age_group_0-2'] * self.returned_df['total_cases']
+                self.returned_df['rel_cases_age_group_0-2'] * \
+                self.returned_df['total_cases']
             self.returned_df['age_group_3_cases'] = \
-            self.returned_df['rel_cases_age_group_3'] * self.returned_df['total_cases']
-            self.returned_df = self.returned_df[['datetime', 'age_group_0-2_cases', 
-                                           'age_group_3_cases', 'total_population']]
-            
+                self.returned_df['rel_cases_age_group_3'] * \
+                self.returned_df['total_cases']
+            self.returned_df = self.returned_df[['datetime', 'age_group_0-2_cases',
+                                                 'age_group_3_cases', 'total_population']]
+        elif regime == self.REGIME_STRAIN:
+            pass
 
     def get_wave_data(self, regime):
         self.__get_time_period()
@@ -154,9 +164,7 @@ class EpidData:
         self.__transform_data_for_regime(regime)
         return self.returned_df
 
-
     def prepare_for_calibration(self):
-        # TODO: add method for returning rho 
+        # TODO: add method for returning rho
         return np.array(self.returned_df.drop(
             columns=['datetime', 'total_population'])).T.flatten()
-        

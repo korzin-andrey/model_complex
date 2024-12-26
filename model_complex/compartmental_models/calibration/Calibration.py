@@ -10,6 +10,8 @@ from ..models.Models.ModelParams import ModelParams
 
 pd.options.mode.copy_on_write = True
 
+# TODO: Return metrics of calibration quality
+
 
 class Calibration:
 
@@ -33,6 +35,7 @@ class Calibration:
         # self.init_infectious = init_infectious
         # self.population_size = population_size
 
+    # TODO: think about parallel processes
     def abc_calibration(self):
         """
         TODO
@@ -52,12 +55,12 @@ class Calibration:
             alpha = pm.Uniform(name="alpha", lower=0,
                                upper=1, shape=(self.model.alpha_dim, ))
             beta = pm.Uniform(name="beta", lower=0,
-                              upper=1, shape=(self.model.beta_dim, ))
+                              upper=2.5, shape=(self.model.beta_dim, ))
             # TODO: change strange approach for setting up equal dimensions for params
             sim = pm.Simulator("sim", simulation_func,
-                               [*list(alpha)] + [0] *
-                               (self.model.beta_dim-self.model.alpha_dim),
-                               beta, epsilon=3500, observed=self.data)
+                               params=([*list(alpha)] + [0] *
+                                       (self.model.beta_dim-self.model.alpha_dim),
+                                       beta), epsilon=3500, observed=self.data)
             idata = pm.sample_smc(progressbar=False)
         posterior = idata.posterior.stack(samples=("draw", "chain"))
         alpha = [np.random.choice(posterior["alpha"][i],
