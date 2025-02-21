@@ -2,27 +2,36 @@
 name = "model-complex"
 version = "0.1.0"
 description = ""
-authors = ["Korzin A.I., Kaparulin T.I., Leonenko V.N."]
+authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-openpyxl = "^3.1.5"
-numpy = ">=1.17.0,<2"
-pymc = "5.18.0"
-ipywidgets = "^8.1.5"
-networkx = "3.4.2"
-EoN = "1.2"
-numpyro = "^0.15.3"
-blackjax = "^1.2.4"
-nutpie = "^0.13.2"
-scipy = "^1.14.1"
+optuna = "^4.1.0"
+pandas = "^2.2.3"
+pymc = "^5.18.2"
 scikit-learn = "^1.5.2"
-optuna = "^4.0.0"
+openpyxl = "^3.1.5"
+seaborn = "^0.13.2"
+pre-commit = "^4.1.0"
+requests = "^2.32.3"
+chardet = "^5.2.0"
 
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
+isort = "^5.13.2"
+black = "^24.10.0"
+ipywidgets = "^8.1.5"
+pre-commit = "^4.0.1"
+
+[tool.black]
+line-length = 90
+target-version = ["py310", "py311", "py312", "py313"]
+
+[tool.isort]
+line_length = 90
+profile = "black"
 
 [build-system]
 requires = ["poetry-core"]

@@ -8,10 +8,6 @@ __pycache__/
 
 .vscode
 
-**/.DS_Store
-
-/plots
-
 # Distribution / packaging
 .Python
 build/
