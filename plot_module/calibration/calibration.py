@@ -95,14 +95,18 @@ def calibration_plot(
     for i in range(len(res)):
         plt.plot(
             res[i],
-            label=f"{label[i]}, $R^2_{i}$: {round(r2_score(plot_data[:, i], res[i]),2)}",
+            label=f"{label[i]}, $R^2$: {round(r2_score(plot_data[:, i], res[i]), 2)}",
             color=color[i],
         )
         plt.plot(plot_data[:, i], "--o", color=color[i])
 
-    plt.title(f"{method.capitalize()}, {type.capitalize()}")
+    # plt.title(f"{method.capitalize()}, {type.capitalize()}")
     plt.legend()
+    plt.xlabel('Week number')
+    plt.ylabel('Incidence, cases')
 
-    plt.savefig(save_path + f"{city}_{method}_{type}.png", dpi=600)
-    plt.savefig(save_path + f"{city}_{method}_{type}.pdf", dpi=600)
+    plt.savefig(save_path + f"_{city}_{method}_{type}_{epid_data.begin_year}-{epid_data.end_year}.png",
+                dpi=600, bbox_inches="tight")
+    plt.savefig(save_path + f"_{city}_{method}_{type}_{epid_data.begin_year}-{epid_data.end_year}.pdf",
+                bbox_inches="tight")
     plt.clf()

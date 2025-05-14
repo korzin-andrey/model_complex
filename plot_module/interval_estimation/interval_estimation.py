@@ -71,7 +71,7 @@ def interval_estimation_plot(epid_data, city, method, type, save_path, epsilon=3
     else:
         fig, axes = plt.subplots(1, 1, figsize=(5, 5))
 
-        sns.histplot(alpha[:, 0], ax=axes, kde=True)
+        sns.histplot(beta[:, 0], ax=axes, kde=True)
 
     fig.suptitle("beta interval estimation")
 

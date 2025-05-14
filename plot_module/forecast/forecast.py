@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
-from sklearn.metrics import r2_score
+import numpy as np
 
+
+from sklearn.metrics import r2_score
 from model_complex import Calibration, FactoryModel, Forecast, ModelParams
 
 
@@ -12,6 +14,7 @@ def forecast_plot(
     type,
     save_path="./",
     epsilon=3000,
+    epid_data_future=None
 ):
 
     epid_data.get_wave_data(type=type)
@@ -24,6 +27,13 @@ def forecast_plot(
         population_size=epid_data.get_rho() // 10,
         initial_infectious=[100],
     )
+
+    if epid_data_future is not None:
+        epid_data_future.get_wave_data(type=type)
+        plot_future_data = epid_data_future.prepare_for_plot()
+        print(plot_future_data)
+        plt.plot(np.arange(len(plot_data), len(plot_data) + len(plot_future_data)),
+                 plot_future_data[:, 0], '--o', color='red', alpha=0.3, label='Future data')
 
     model = FactoryModel.get_model(type)
 
@@ -62,7 +72,7 @@ def forecast_plot(
             label=f"{label[i]}, $R^2$: {r2}",
             color=color[i],
         )
-        plt.plot(plot_data[:, i], "--o", color=color[i])
+        plt.plot(plot_data[:, i], "--o", color=color[i], label='Current data')
         plt.fill_between(
             range(for_from, len(forecast_result[i, :, 0])),
             forecast_result[i, :, 0][for_from:],
@@ -82,11 +92,13 @@ def forecast_plot(
         )
 
     # plt.xticks(data["datetime"])
-    plt.ylabel("Кол. новых случаев заболеваний")
-    plt.xlabel("Недели")
-    plt.title(f"{method.upper()}, {type.capitalize()}")
+    plt.ylabel("Incidence, cases")
+    plt.xlabel("Week number")
+    # plt.title(f"{method.upper()}, {type.capitalize()}")
     plt.legend()
 
-    plt.savefig(save_path + f"F_{city}_{method}_{type}.png", dpi=600)
-    plt.savefig(save_path + f"F_{city}_{method}_{type}.pdf", dpi=600)
+    plt.savefig(save_path + f"forecast_{city}_{method}_{type}.png", dpi=600,
+                bbox_inches='tight')
+    plt.savefig(save_path + f"forecast_{city}_{method}_{type}.pdf",
+                bbox_inches='tight')
     plt.clf()
